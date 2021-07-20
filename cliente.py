@@ -11,6 +11,19 @@ def find_server(sock):
     while True:
         sock.sendto(b"DISCOVERY", ('127.255.255.255', 50000))
         sock.settimeout(delay)
+        try:
+            data, address = sock.recvfrom(MAXBYTES)
+        except socket.timeout:
+            #delay *= 2
+            print("Servidor não encontrado!")
+            aux+=1
+            if(aux==30): #tentativa para a questão 2
+                print("30 tentativas atingidas... Encerrando...")
+                break
+                sock.close()
+        else:
+            print("Servidor encontrado em {}".format(address))
+            break
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 0)
     sock.settimeout(None)
 
