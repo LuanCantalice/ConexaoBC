@@ -2,6 +2,9 @@ import socket
 
 MAXBYTES = 65535
 
+class TimeExceeded(OSError):
+    pass
+
 
 def find_server(sock):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -14,13 +17,10 @@ def find_server(sock):
         try:
             data, address = sock.recvfrom(MAXBYTES)
         except socket.timeout:
-            #delay *= 2
-            print("Servidor não encontrado!")
             aux+=1
-            if(aux==30): #tentativa para a questão 2
-                print("30 tentativas atingidas... Encerrando...")
-                break
-                sock.close()
+            if(aux==30):
+                raise TimeExceeded
+
         else:
             print("Servidor encontrado em {}".format(address))
             break
@@ -32,7 +32,13 @@ def find_server(sock):
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    address = find_server(sock)
+    try:
+        address = find_server(sock)
+    except TimeExceeded:
+        print("Servidor não encontrado! Finalizando...")
+        sock.close
+        return
+    
     sock.connect(address)
 
     while True:
